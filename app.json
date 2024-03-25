@@ -4,10 +4,10 @@
     "slug": "QR-CBA",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Splash.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/Splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,12 +19,22 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Splash.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.oliviosubelza.QRCBA"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Splash.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "57bb5a49-57be-4082-8962-008cf9e7f06e"
+      }
     }
   }
 }
