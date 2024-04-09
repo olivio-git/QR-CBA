@@ -9,24 +9,30 @@ import { Text, TouchableOpacity } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { loginKey } from "../config/configGlobal.json";
 import { DataContext } from "../context/Provider";
+import { validateSession } from "../https/PostFetchs";
+import { CreateEvent } from "../components/CreateEvent";
+import { LayoutPodcast } from "../layouts/LayoutPodcast";
+import { EventDetails } from "../components/ModalEventDetails";
 
 const Stack = createNativeStackNavigator();
 
 const Navigation = () => {
-  const {auth,setDataAuth} = useContext(DataContext);  
-  const getAuthLocalStorge = async () => {
-    const response = await SecureStore.getItemAsync(loginKey);
-    const transformJson = await JSON.parse(response);
-    if(response){
-      setDataAuth(transformJson);
+  const { auth, setDataAuth } = useContext(DataContext);
+  const getAuthLocalStorgeValidSession = async () => {
+    const token = await SecureStore.getItemAsync(loginKey);
+    if (token) {
+      const result = await validateSession(token);
+      if (result) { 
+        setDataAuth(result.data);
+      };
     }
-  }
+  };
   useEffect(() => {
-    getAuthLocalStorge();
-  }, [auth]);
+    getAuthLocalStorgeValidSession()
+  }, []);
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={!auth?"login":null}>
+      <Stack.Navigator initialRouteName={!auth ? "login" : null}>
         <Stack.Screen
           name="login"
           component={LayoutLoguin}
@@ -47,7 +53,21 @@ const Navigation = () => {
           component={LayoutMain}
           options={{ headerShown: false }}
         />
-        
+        <Stack.Screen
+          name="event"
+          component={CreateEvent}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="podcast"
+          component={LayoutPodcast}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="eventdetail"
+          component={EventDetails}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

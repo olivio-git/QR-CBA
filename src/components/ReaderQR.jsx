@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Pressable } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Pressable,
+  Image,
+} from "react-native";
 import { Camera } from "expo-camera";
 import axios from "axios";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { colors } from "../config/environments";
+import QRGIF from "../../assets/QR.gif"
+import Animated, { FadeIn, FadeInUp } from "react-native-reanimated";
+// import { PinchGestureHandler, Animated } from 'react-native-gesture-handler';
+
 
 export default function ReaderQR() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(true);
+  const [camera, setCamera] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -18,17 +30,30 @@ export default function ReaderQR() {
 
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    alert(`Scanneo completo ${data}`); 
+    alert(`Scanneo completo ${data}`);
     const response = await axios.post(
       `http://192.168.0.14:3001/appi/users/qr/reader/`,
       { type, data }
     );
-    console.log(response.data);
+    console.log(data);
   };
 
   const renderCamera = () => {
     return (
-      <View style={styles.cameraContainer}>
+      <View
+        style={{
+          width: "100%",
+          aspectRatio: 1,
+          overflow: "hidden",
+          // borderRadius: 20,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+
+          // marginBottom: 5,
+          borderWidth: 1,
+          borderColor: scanned ? "#33C398" : "red",
+        }}
+      >
         <Camera
           onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
           style={styles.camera}
@@ -44,35 +69,59 @@ export default function ReaderQR() {
     return <Text>No access to camera</Text>;
   }
   return (
-    <View style={styles.container}>
+    <Animated.View
+      entering={FadeInUp.delay(200).duration(1000).springify()}
+      style={styles.container}
+    >
       {/* <LinearGradient colors={["#093637", "#44A08D"]} style={styles.gradient}> */}
-      <Text style={styles.title}>Activity Spaces</Text>
       <Text style={styles.paragraph}>QR scanner </Text>
-      {renderCamera()} 
-      <Pressable
-        style={({ pressed }) => [
-          {
-            backgroundColor: scanned
-              ? colors.colorGreen
-              : colors.colorButtonRed,
-            padding: 10,
-            borderRadius: 5,
-            alignItems: "center",
-            justifyContent: "center",
-          },
-        ]}
-        onPress={() => setScanned(false)}
-      >
-        <Text style={styles.buttonText}>
-          {scanned ? "Start to job" : "Scanning"}{" "}
-          <MaterialCommunityIcons
-            name="qrcode-scan"
-            size={20}
-            color={colors.colorWhite}
-          />
-        </Text>
-      </Pressable> 
-    </View>
+      {camera ? (
+        <Pressable onPress={() => setCamera(!camera)} style={styles.cameraIcon}>
+          <Feather name="camera-off" size={35} color={colors.colorButtonRed} />
+          <Text style={{ color: "white" }}>Turn off camera</Text>
+        </Pressable>
+      ) : (
+        <Pressable onPress={() => setCamera(!camera)} style={styles.cameraIcon}>
+          <Feather name="camera" size={35} color={colors.colorGreen} />
+          <Text style={{ color: "white" }}>Turn on camera</Text>
+        </Pressable>
+      )}
+
+      {camera
+        ? renderCamera()
+        : null
+          // <View>
+          //   <Image source={QRGIF} style={styles.cameraContainerQr}></Image>
+          // </View>
+      }
+      {camera ? (
+        <Pressable
+          style={({ pressed }) => [
+            {
+              backgroundColor: scanned
+                ? colors.colorGreen
+                : colors.colorButtonRed,
+              padding: 10,
+              width: "100%", 
+              borderBottomRightRadius: 12,
+              borderBottomLeftRadius: 12,
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          ]}
+          onPress={() => setScanned(!scanned)}
+        >
+          <Text style={styles.buttonText}>
+            {scanned ? "Start" : "Scanning"}{" "}
+            {/* <MaterialCommunityIcons
+              name="qrcode-scan"
+              size={20}
+              color={colors.colorBodyDirty}
+            /> */}
+          </Text>
+        </Pressable>
+      ) : null}
+    </Animated.View>
   );
 }
 const styles = StyleSheet.create({
@@ -81,7 +130,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.bgBody,
-    paddingHorizontal: 1,
+    paddingHorizontal: 10,
     paddingVertical: 10,
   },
   title: {
@@ -92,17 +141,32 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontSize: 16,
-    marginBottom: 40,
+    marginBottom: 10,
     color: "gray",
   },
+  cameraIcon: {
+    marginBottom: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   cameraContainer: {
-    width: "90%",
+    width: "100%",
     aspectRatio: 1,
     overflow: "hidden",
     borderRadius: 20,
-    marginBottom: 40,
+    marginBottom: 5,
+    borderWidth:1, 
+  },
+  cameraContainerQr: {
+    width: 290,
+    height: 290,
+    borderRadius: 55,
+    overlayColor: "transparent",
   },
   camera: {
+    flex: 1,
+  },
+  viewDontCamera: {
     flex: 1,
   },
   button: {
@@ -135,3 +199,6 @@ const styles = StyleSheet.create({
     // backgroundColor:"green"
   },
 });
+
+
+

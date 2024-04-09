@@ -6,8 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { colors } from "../config/environments";
+} from "react-native"; 
 
 export const ModalImageProfile = ({
   modalVisibility,

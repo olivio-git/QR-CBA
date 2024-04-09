@@ -16,12 +16,19 @@ import {
 import { loginKey } from "../config/configGlobal.json";
 import * as SecureStore from "expo-secure-store";
 import { useNavigation } from "@react-navigation/native";
-import Constants from "expo-constants"; 
+import Constants from "expo-constants";
 import { colors } from "../config/environments";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { DataContext } from "../context/Provider";
 import { ModalProfile } from "../components/ModalProfile";
 import ReaderQR from "../components/ReaderQR";
+import { responseData, validateSession } from "../https/PostFetchs";
+import { StatusBar } from "expo-status-bar";
+import { ColorSpace } from "react-native-reanimated";
+import EventosPng from "../../assets/Eventos.png";
+import QrButton from "../../assets/QrButton.png";
+import { EventsManager } from "../components/EventsManager";
+import { LayoutPodcast } from "./LayoutPodcast";
 
 export const LayoutAdmin = () => {
   const { auth, setDataAuth } = useContext(DataContext);
@@ -32,18 +39,20 @@ export const LayoutAdmin = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [menuButtonActive, setMenuButtonActive] = useState("qr");
   const navigate = useNavigation();
 
   const getAuthLocalStorge = async () => {
-    setRefreshing(true);
-    const response = await SecureStore.getItemAsync(loginKey);
-    const transformJson = await JSON.parse(response);
-    setSession(transformJson);
-    if (response) {
-      setDataAuth(transformJson);
-      setACtivity(false);
-      setRefreshing(false);
-    }
+    try {
+      const token = await SecureStore.getItemAsync(loginKey);
+      const result = await validateSession(token);
+      setSession(token);
+      if (auth) {
+        setDataAuth(result.data.user);
+        setACtivity(false);
+        setRefreshing(false);
+      }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -82,6 +91,7 @@ export const LayoutAdmin = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* <StatusBar style="light"></StatusBar> */}
       {activity ? (
         <ActivityIndicator
           size="large"
@@ -93,14 +103,17 @@ export const LayoutAdmin = () => {
           <ScrollView
             contentContainerStyle={styles.header}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={getAuthLocalStorge}></RefreshControl>
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={getAuthLocalStorge}
+              ></RefreshControl>
             }
           >
             <View style={styles.viewProfileImage}>
               <TouchableOpacity onPress={() => setModalVisible(true)}>
                 <Image
                   style={styles.image}
-                  source={{ uri: session._profileImage }}
+                  source={{ uri: auth.user._profileImage }}
                 ></Image>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -113,19 +126,105 @@ export const LayoutAdmin = () => {
             </View>
             <View style={styles.viewProfile}>
               <Text style={styles.textProfile}>
-                {session.nombres + " " + session.apellidos}
+                {auth.user.nombres + " " + auth.user.apellidos}
                 {/* {"a"} */}
               </Text>
             </View>
           </ScrollView>
           <View style={styles.body}>
-            <ReaderQR></ReaderQR>
-          </View>  
+            <View>
+              <TouchableOpacity>
+                <View style={styles.containerMenu}>
+                  <TouchableOpacity
+                    style={
+                      menuButtonActive == "qr"
+                        ? styles.buttonContainerMenuActive
+                        : styles.buttonContainerMenu
+                    }
+                    onPress={() => setMenuButtonActive("qr")}
+                  >
+                    {/* <Text
+                      style={
+                        menuButtonActive == "qr"
+                          ? styles.menuButtonTextActiv
+                          : styles.menuButtonTextDesactiv
+                      }
+                    >
+                    </Text> */}
+                    <MaterialCommunityIcons
+                      name="qrcode-scan"
+                      size={30}
+                      color={menuButtonActive == "qr" ? "#FFFF" : "gray"}
+                    />
+                    {/* <Image
+                          source={QrButton}
+                          style={styles.menuButtonPng}
+                        ></Image> */}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={
+                      menuButtonActive == "eventos"
+                        ? styles.buttonContainerMenuActive
+                        : styles.buttonContainerMenu
+                    }
+                    onPress={() => setMenuButtonActive("eventos")}
+                  >
+                    {/* <Text
+                      style={
+                        menuButtonActive == "eventos"
+                          ? styles.menuButtonTextActiv
+                          : styles.menuButtonTextDesactiv
+                      }
+                    >
+                    </Text> */}
+                    <MaterialCommunityIcons
+                      name="calendar-month-outline"
+                      size={30}
+                      color={menuButtonActive == "eventos" ? "#FFFF" : "gray"}
+                    />
+                    {/* <Image
+                          source={EventosPng}
+                          style={styles.menuButtonPng}
+                        ></Image> */}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={
+                      menuButtonActive == "podcast"
+                        ? styles.buttonContainerMenuActive
+                        : styles.buttonContainerMenu
+                    }
+                    onPress={() => setMenuButtonActive("podcast")}
+                  >
+                    {/* <Text
+                      style={
+                        menuButtonActive == "qr"
+                          ? styles.menuButtonTextActiv
+                          : styles.menuButtonTextDesactiv
+                      }
+                    >
+                    </Text> */}
+                    <MaterialCommunityIcons
+                      name="google-podcast"
+                      size={30}
+                      color={menuButtonActive == "podcast" ? "#FFFF" : "gray"}
+                    />
+                    {/* <Image
+                          source={QrButton}
+                          style={styles.menuButtonPng}
+                        ></Image> */}
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            </View>
+            {menuButtonActive == "qr" && <ReaderQR></ReaderQR>}
+            {menuButtonActive == "eventos" && <EventsManager></EventsManager>}
+            {menuButtonActive == "podcast" && <LayoutPodcast></LayoutPodcast>}
+          </View>
           {/* Modal profile aqui abajito */}
           <ModalProfile
             modalVisible={modalVisible}
             setModalVisible={setModalVisible}
-            session={session}
+            session={auth.user}
           ></ModalProfile>
         </>
       )}
@@ -136,15 +235,14 @@ export const LayoutAdmin = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: Constants.statusBarHeight,
   },
   header: {
     flex: 1,
-    padding: 20,
+    padding: 10,
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "red",
-    borderColor: "red",
+    // backgroundColor: "red",
+    // borderColor: "red",
     backgroundColor: colors.bgBody,
     gap: 10,
   },
@@ -153,14 +251,14 @@ const styles = StyleSheet.create({
     height: "100%",
 
     flexDirection: "row",
-    alignItems: "center", 
+    alignItems: "center",
   },
   viewProfile: {
     width: "80%",
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
-    paddingLeft: 20, 
+    paddingLeft: 20,
   },
   textProfile: {
     fontSize: 20,
@@ -168,9 +266,9 @@ const styles = StyleSheet.create({
     color: colors.colorWhite,
   },
   body: {
-    flex: 10,
+    flex: 12,
     backgroundColor: colors.bgBody,
-    padding: 20,
+    // paddingHorizontal: 10,
   },
   footer: {
     flex: 2,
@@ -194,5 +292,56 @@ const styles = StyleSheet.create({
     alignItems: "center", // Centra el ícono horizontalmente
     justifyContent: "center", // Centra el ícono verticalmente
     // backgroundColor:"green"
+  },
+  containerMenu: {
+    display: "flex",
+    gap: 50,
+    backgroundColor: "#111B21",
+    flexDirection: "row",
+    justifyContent: "center",
+    // paddingHorizontal: 10,
+    paddingVertical: 12,
+    borderBottomWidth: 1, // Especifica el ancho del borde inferior
+    borderBottomColor: "gray", // Especifica el color del borde inferior
+    // borderTopColor: "gray", // Especifica el color del borde inferior
+    // borderTopWidth: 1,
+  },
+  buttonContainerMenu: {
+    backgroundColor: "#293237",
+    width: "20%", // Cada botón ocupará la mitad del ancho disponible
+    justifyContent: "center", // Centra el botón verticalmente dentro de su contenedor
+    alignItems: "center", // Centra el botón horizontalmente dentro de su contenedor
+    height: 40,
+    // borderWidth: 1,
+    // borderTopRightRadius: 5,
+    // borderBottomRightRadius: 5,
+    borderRadius: 12,
+    display: "flex",
+    flexDirection: "row",
+    gap: 10,
+  },
+  buttonContainerMenuActive: {
+    backgroundColor: "#293237",
+    width: "20%", // Cada botón ocupará la mitad del ancho disponible
+    justifyContent: "center", // Centra el botón verticalmente dentro de su contenedor
+    alignItems: "center", // Centra el botón horizontalmente dentro de su contenedor
+    height: 40,
+    borderRadius: 12,
+    // borderWidth: 1,
+    // borderTopRightRadius: 5,
+    // borderBottomRightRadius: 5,
+    display: "flex",
+    flexDirection: "row",
+    gap: 10,
+  },
+  menuButtonPng: {
+    width: 30,
+    height: 30,
+  },
+  menuButtonTextDesactiv: {
+    color: colors.bgBody,
+  },
+  menuButtonTextActiv: {
+    color: colors.colorWhite,
   },
 });
