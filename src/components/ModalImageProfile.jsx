@@ -6,7 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native"; 
+} from "react-native";
 
 export const ModalImageProfile = ({
   modalVisibility,
@@ -18,8 +18,8 @@ export const ModalImageProfile = ({
       animationType="none"
       transparent={true}
       visible={modalVisibility}
-      onRequestClose={()=>{
-        setModalVisibility(false)
+      onRequestClose={() => {
+        setModalVisibility(false);
       }}
     >
       <TouchableOpacity
@@ -28,7 +28,11 @@ export const ModalImageProfile = ({
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Image source={{ uri: image }} style={styles.image}></Image>
+            {image ? (
+              <Image source={{ uri: image }} style={styles.image}></Image>
+            ) : (
+              <Text className="text-white">Not profile image</Text>
+            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -61,8 +65,8 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "50%",
   },
-  button:{
+  button: {
     width: "100%",
-    height:"100%"
-  }
+    height: "100%",
+  },
 });

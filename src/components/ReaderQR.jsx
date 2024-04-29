@@ -13,6 +13,7 @@ import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { colors } from "../config/environments";
 import QRGIF from "../../assets/QR.gif"
 import Animated, { FadeIn, FadeInUp } from "react-native-reanimated";
+import Toast from "react-native-toast-message";
 // import { PinchGestureHandler, Animated } from 'react-native-gesture-handler';
 
 
@@ -30,12 +31,18 @@ export default function ReaderQR() {
 
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    alert(`Scanneo completo ${data}`);
     const response = await axios.post(
-      `http://192.168.0.14:3001/appi/users/qr/reader/`,
-      { type, data }
+      `http://172.16.3.15:3001/appi/QR/verificarQR`,{id_QR:data}
     );
-    console.log(data);
+    Toast.show({
+      type: "success",
+      text1:"Success! ¿✅ ",
+      text2: `Referral number ${response.data.data.result.cantidad_uso}. 🙂`,
+      textStyle: { fontSize: 50, fontWeight: "bold" },
+      backgroundColor: "#33C398",
+      textColor: "white",
+      duration: 5000, 
+    });
   };
 
   const renderCamera = () => {

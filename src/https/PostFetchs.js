@@ -1,29 +1,21 @@
 import axios from "axios";
-import { apiUrl } from "../config/configGlobal.json";
+import { apiUrl, apiPlus } from "../config/configGlobal.json";
 
 const options = {
   Admin: async (user) => {
-    //login con webpage api
     const format = {
       correo: user.email,
       password: user.password,
     };
-    return await axios.post(
-      `http://${apiUrl}/appi/users/login`,
-      format,
-      {
-        withCredentials: true,
-        contentType: "application/json",
-      }
-    );
+    return await axios.post(`http://${apiUrl}/appi/users/login`, format, {
+      withCredentials: true,
+      contentType: "application/json",
+    });
   },
   Student: async (user) => {
-    console.log("student");
-    //login con cbaplus api
-    return await axios.post(`http://${apiUrl}/api/auth/login`, user);
+    return await axios.post(`http://${apiPlus}/api/auth/login`, user);
   },
   Teacher: async () => {
-    //aun está por verse
     return await axios.post(`http://${apiUrl}/api/auth/login`, user, {
       withCredentials: true,
       contentType: "application/json",
@@ -31,26 +23,41 @@ const options = {
   },
 };
 export const userLoginPost = async (user, option) => {
-  console.log("object2");
   return options[option](user);
-  // return await axios.post("http://192.168.0.15:3001/appi/users/login", user, {
-  //   withCredentials: true,
-  //   contentType: "application/json",
-  // });
 };
+
 export const responseData = async () => {
   return await axios.get(`http://${apiUrl}/appi/datosevento`);
 };
-export const validateSession = async (token) => {
-  // const config = {
-  //   headers: {
-  //     Authorization: `Bearer ${token}`,
-  //   },
-  // };
-  const data = {
-    validation: "Validation",
-  };
+export const validateSessionWebApi = async (token) => {
+  // const hasSpecialCharacter = token.includes("|");
   return await axios.post(`http://${apiUrl}/appi/users/valid/token/mobile`, {
     token,
   });
+};
+export const validateSessionCbaPlus = async (token) => {
+  return await axios.post(
+    `http://${apiPlus}/api/auth/validate`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};
+
+export const generateQrCode = async (data) => {
+  // const hasSpecialCharacter = token.includes("|");
+  return await axios.post(`http://${apiUrl}/appi/QR/generarQR`, data);
+};
+export const uploadFle = async (fs) => {
+  return await axios.post(`http://${apiUrl}/appi/files/upload`, {
+    filePath: fs,
+    type: "image",
+  });
+};
+
+export const createEvent = async (fs) => {
+  return await axios.post(`http://${apiUrl}/appi/datosevento/create`, fs);
 };

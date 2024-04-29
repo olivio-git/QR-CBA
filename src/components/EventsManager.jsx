@@ -15,18 +15,22 @@ import { DataContext } from "../context/Provider";
 import EventButton from "../../assets/CrearEvento.png";
 import CardElement from "./CardElement";
 import { ModalCreateEvent } from "./CreateEvent";
-import { useNavigation } from "@react-navigation/native";
+import {
+  useNavigation,
+  useNavigationState,
+  useRoute,
+} from "@react-navigation/native";
 import { Divider } from "react-native-elements";
 
 export const EventsManager = () => {
+  const route = useRoute();
   const navigate = useNavigation();
-  const { dataEvents, handleChargeDataEvents } = useContext(DataContext);
+  const { auth, dataEvents, handleChargeDataEvents } = useContext(DataContext);
   const handleNavigate = () => {
     navigate.navigate("event");
   };
   const [refreshing, setRefreshing] = useState(false);
 
- 
   useEffect(() => {
     handleChargeDataEvents();
   }, []);
@@ -56,9 +60,7 @@ export const EventsManager = () => {
             renderItem={({ item }) => {
               return (
                 <>
-                  <CardElement
-                    item={item}  
-                  ></CardElement>
+                  <CardElement item={item}></CardElement>
                   <Divider className="w-full bg-gray-200"></Divider>
                 </>
               );
@@ -66,9 +68,14 @@ export const EventsManager = () => {
           />
         </View>
       )}
-      <TouchableOpacity style={styles.floatingButton} onPress={handleNavigate}>
-        <Image source={EventButton} style={styles.floatingButtonIcon} />
-      </TouchableOpacity>
+      {route.name == "admin" && (
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={handleNavigate}
+        >
+          <Image source={EventButton} style={styles.floatingButtonIcon} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -142,7 +149,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 20,
     right: 20,
-    backgroundColor: colors.bgBody,
+    backgroundColor: "transparent",
     borderRadius: 50,
     width: 30,
     height: 30,

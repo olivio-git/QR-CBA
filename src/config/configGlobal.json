@@ -1,5 +1,7 @@
 {
     "loginKey":"LK1SKD919KAD0",
+    "loginKeyType":"LAS23DMKAWI12",
     "KeyData":"",
-    "apiUrl":"172.16.3.15:3001"
+    "apiUrl":"172.16.3.15:3001",
+    "apiPlus":"172.16.3.15:8000"
 }

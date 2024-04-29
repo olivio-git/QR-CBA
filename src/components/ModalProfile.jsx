@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   Image,
   Modal,
@@ -13,8 +13,10 @@ import { loginKey } from "../config/configGlobal.json";
 import * as SecureStore from "expo-secure-store";
 import { AntDesign } from "@expo/vector-icons";
 import { ModalImageProfile } from "./ModalImageProfile";
+import { DataContext } from "../context/Provider";
 
 export const ModalProfile = ({ modalVisible, setModalVisible, session }) => {
+  const {avatar} =useContext(DataContext);
   const [modalVisibility, setModalVisibility] = useState(false);
   const navigate = useNavigation();
   const removeSession = async () => {
@@ -50,7 +52,7 @@ export const ModalProfile = ({ modalVisible, setModalVisible, session }) => {
               <TouchableOpacity onPress={() => setModalVisibility(true)}>
                 <Image
                   style={styles.image}
-                  source={{ uri: session._profileImage }}
+                  source={{ uri: session._profileImage || avatar }}
                 />
               </TouchableOpacity>
             </View>

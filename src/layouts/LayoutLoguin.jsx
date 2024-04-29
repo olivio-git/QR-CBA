@@ -12,6 +12,7 @@ import {
   Alert,
   Pressable,
   ScrollView,
+  BackHandler,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import Back from "../../assets/background.png";
@@ -32,19 +33,18 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ModalSelectType } from "../components/ModalSelectType";
 
 export const LayoutLoguin = () => {
-  const { setDataAuth } = useContext(DataContext);
+  const { setDataAuth, handleValidateSession } = useContext(DataContext);
   const navigate = useNavigation();
   const [key, setKey] = useState();
   const [user, setUser] = useState({
     email: "",
     password: "",
-
   });
   const [selectValue, setSelectValue] = useState({
     valueSelected: "Seleccione tipo de usuario",
   });
-  const [ modalSelect,setModalSelect ] = useState(false);
-  
+  const [modalSelect, setModalSelect] = useState(false);
+
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [activity, setACtivity] = useState(false);
   //http://localhost:3001/appi/datosevento
@@ -52,44 +52,69 @@ export const LayoutLoguin = () => {
     try {
       setACtivity(true);
       await SecureStore.deleteItemAsync(loginKey);
-      if(selectValue.valueSelected!= "Seleccione tipo de usuario"){
-        const response = await userLoginPost(user,selectValue.valueSelected);
-        console.log(response);
-        console.log(response.data);
-
-        await SecureStore.setItemAsync(loginKey, response.data.token);
-        setACtivity(false);
+      if (selectValue.valueSelected != "Seleccione tipo de usuario") {
+        //si se selecciono un tipo de usuario
+        const response = await userLoginPost(
+          {
+            email: user.email,
+            password: user.password,
+          },
+          selectValue.valueSelected
+        ); //mandamos la request
+        setACtivity(false); //desactivamos el boton de carga
+        setSelectValue({
+          //limpiamos el select
+          ...selectValue,
+          valueSelected: "Seleccione tipo de usuario",
+        });
         setUser({
+          //limpiamos los inputs
           ...user,
           email: "",
           password: "",
         });
-        setSelectValue({
-          ...selectValue,
-          valueSelected: "Seleccione tipo de usuario",
-        });
-        console.log(response.data.userData);
-        setDataAuth(response.data);
+        if (response.data.token) {
+          await SecureStore.setItemAsync(loginKey, response.data.token); //guardamos el token en el local storage
+          setDataAuth(response.data); //guardamos los datos del usuario en el contexto
+          navigate.navigate("admin");
+        } else if (response.data.userData) {
+          // Suponiendo que el token se obtiene de alguna manera, por ejemplo, response.data.token
+          const token = "tu_token_aqui"; // Reemplaza "tu_token_aqui" con la forma en que obtienes el token
+         
+          // Agrega el token al objeto userData
+          const userDataWithToken = {
+             ...response.data.userData,
+             token: response.data.accessToken, // Asegúrate de que el nombre de la propiedad sea el correcto
+          };
+         
+          // Guarda el objeto con el token en SecureStore
+          await SecureStore.setItemAsync(
+             loginKey,
+             JSON.stringify(userDataWithToken)
+          );
+         
+          // Guarda los datos del usuario en el contexto
+          setDataAuth(userDataWithToken);
+         
+          // Navega a la pantalla de estudiante
+          navigate.navigate("student");
+         }
         Toast.show({
+          //mostramos un mensaje de exito
           type: "success",
           text1: "Inicio de sesión exitoso!",
           text2: "Bienvenido! 👋",
         });
-        if (response.data.rol == "Admin") {
-          navigate.navigate("admin");
-        } else {
-          navigate.navigate("student");
-        }
-      }else{
-        setACtivity(false);
+      } else {
+        setACtivity(false); // desactivamos el boton de carga
         Toast.show({
+          //mostramos un mensaje de error
           type: "error",
           text1: "Ocurrió un error!",
           text2: "Seleccione el tipo de usuario ⚠️",
         });
       }
-    } catch (error) { 
-      console.log(JSON.stringify(error));
+    } catch (error) {
       setACtivity(false);
       Toast.show({
         type: "error",
@@ -106,21 +131,16 @@ export const LayoutLoguin = () => {
     });
   };
   const validationSession = async () => {
+    const response = await handleValidateSession();
     try {
-      const token = await SecureStore.getItemAsync(loginKey);
-      if (token) {
-        const result = await validateSession(token); 
-        if (result) {
-          setACtivity(false);
-          if (result.data.user.rol === "Admin") {
-            navigate.navigate("admin");
-          } else {
-            navigate.navigate("student");
-          }
-        }
+      if (response == "admin") {
+        navigate.navigate("admin");
+      } else if (response == "student") {
+        navigate.navigate("student");
+      } else {
+        navigate.navigate("login");
       }
     } catch (error) {
-      console.log(error, "errroooooorrrr");
     }
   };
 
@@ -130,6 +150,31 @@ export const LayoutLoguin = () => {
 
   useEffect(() => {
     validationSession();
+  }, []);
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert("Close Application", "¿Are you sure you want to log out?", [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: () => {
+            BackHandler.exitApp();
+          },
+        },
+      ]);
+      return true; // Indica que la acción ha sido manejada
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
   }, []);
   return (
     <ImageBackground source={Back} className="flex-1 bg-cover justify-end">

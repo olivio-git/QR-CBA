@@ -30,12 +30,13 @@ import QrButton from "../../assets/QrButton.png";
 import { EventsManager } from "../components/EventsManager";
 import { LayoutPodcast } from "./LayoutPodcast";
 
+
 export const LayoutAdmin = () => {
-  const { auth, setDataAuth } = useContext(DataContext);
+  const { auth, setDataAuth,avatar } = useContext(DataContext);
   const [session, setSession] = useState({
     user: null,
   });
-  const [activity, setACtivity] = useState(true);
+  const [activity, setACtivity] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,7 +57,7 @@ export const LayoutAdmin = () => {
   };
 
   useEffect(() => {
-    getAuthLocalStorge();
+    // getAuthLocalStorge();
   }, []);
   useEffect(() => {
     const backAction = () => {
@@ -113,7 +114,7 @@ export const LayoutAdmin = () => {
               <TouchableOpacity onPress={() => setModalVisible(true)}>
                 <Image
                   style={styles.image}
-                  source={{ uri: auth.user._profileImage }}
+                  source={{ uri: auth.user._profileImage || avatar}}
                 ></Image>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -125,7 +126,9 @@ export const LayoutAdmin = () => {
               </TouchableOpacity>
             </View>
             <View style={styles.viewProfile}>
-              <Text style={styles.textProfile}>
+            <Text
+                className="text-white font-light text-2xl text-center"
+              >
                 {auth.user.nombres + " " + auth.user.apellidos}
                 {/* {"a"} */}
               </Text>
@@ -243,8 +246,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     // backgroundColor: "red",
     // borderColor: "red",
-    backgroundColor: colors.bgBody,
-    gap: 10,
+    backgroundColor: colors.bgBody, 
   },
   viewProfileImage: {
     width: "20%",
@@ -257,8 +259,7 @@ const styles = StyleSheet.create({
     width: "80%",
     height: "100%",
     justifyContent: "center",
-    alignItems: "center",
-    paddingLeft: 20,
+    alignItems: "center"
   },
   textProfile: {
     fontSize: 20,
@@ -281,6 +282,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
+    backgroundColor:colors.bgBody
   },
   iconContainer: {
     width: 100,

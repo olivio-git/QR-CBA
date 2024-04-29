@@ -42,10 +42,6 @@ const CardElement = ({ item, setEventDetails }) => {
           </Text>
         </View>
       </TouchableOpacity>
-      {/* <ModalEventDetails
-        modalDetails={modalDetails}
-        setModalDetails={setModalDetails} 
-      ></ModalEventDetails> */}
     </View>
   );
 };

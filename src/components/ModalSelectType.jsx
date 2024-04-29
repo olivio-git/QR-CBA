@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { Divider } from "react-native-elements";
 import Picker from "react-native-picker-select";
+import * as SecureStore from "expo-secure-store";
+import { loginKeyType } from "../config/configGlobal.json";
 
 export const ModalSelectType = ({
   modalSelect,
@@ -17,7 +19,7 @@ export const ModalSelectType = ({
   setSelectValue,
 }) => {
   const handleSelectAndClose = (value) => {
-    console.log(value);
+    SecureStore.setItemAsync(loginKeyType,value);
     setSelectValue({
       ...selectValue,
       valueSelected: value,
